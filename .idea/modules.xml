@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/carbon-tools.iml" filepath="$PROJECT_DIR$/.idea/carbon-tools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/carbon-hr/carbon-tools-hr.iml" filepath="$PROJECT_DIR$/carbon-hr/carbon-tools-hr.iml" />
+    </modules>
+  </component>
+</project>
