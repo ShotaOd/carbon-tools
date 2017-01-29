@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.carbon.tools.hr.fw.FileWatcher;
 import org.carbon.tools.hr.fw.FileWatcherFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,20 +27,18 @@ public class HotReloader {
     private Consumer<Class> onClassCompiled;
 
     protected RuntimeCompiler runtimeCompiler;
-    protected Set<FileWatcher> fileWatchers;
+    protected Set<Runnable> runners;
 
     public HotReloader(Package targetPackage) throws IOException {
         runtimeCompiler = new RuntimeCompiler();
         setupCompiler();
         Path packageDirectory = getPackageDirectory(targetPackage.getName().replace(".", "/"));
-        fileWatchers = FileWatcherFactory.instance.factorize(packageDirectory);
+        runners = FileWatcherFactory.instance.factorize(packageDirectory, getFileChangedConsumer());
     }
 
     public void subscribe() throws IOException, InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(fileWatchers.size());
-        for (FileWatcher watcher : fileWatchers) {
-            executorService.submit(setupWatcher(watcher));
-        }
+        ExecutorService executorService = Executors.newFixedThreadPool(runners.size());
+        runners.forEach(executorService::submit);
     }
 
     public void setOnClassCompiled(Consumer<Class> onClassCompiled) {
@@ -71,16 +68,17 @@ public class HotReloader {
         });
     }
 
-    private FileWatcher setupWatcher(FileWatcher watcher) throws IOException, InterruptedException {
-        watcher.setUp();
-        watcher.setFileDelegate(path -> {
-            logger.debug("detect change, file://" + path);
+    private Consumer<Path> getFileChangedConsumer() {
+        return path -> {
+            logger.debug("Detect change, at [{}]", path);
+
             String pathStr = path.toString();
             if (path.toFile().isDirectory()) return;
             if (!path.toString().endsWith(".java")) {
-                logger.debug("dismiss because ["+path.getFileName()+"] is not java file");
+                logger.debug("Dismiss because not java file ["+path.getFileName()+"]");
                 return;
             }
+
             logger.debug("try compile...");
             try (BufferedReader reader = new BufferedReader(new FileReader(pathStr))) {
                 String classFqnPath = resolveClassFqn(path);
@@ -88,16 +86,17 @@ public class HotReloader {
                 if (classFqn.startsWith(".")) {
                     classFqn = classFqn.replaceFirst(".","");
                 }
+                logger.debug("target class: {}", classFqn);
+
                 String source = reader.lines().collect(Collectors.joining("\n"));
-                logger.debug("target file: {}",classFqnPath);
                 logger.debug("source: \n{}",source);
+
                 runtimeCompiler.compile(classFqnPath, source);
             } catch (IOException ignore) {
             } catch (Exception e) {
-                logger.warn("",e);
+                logger.warn("Compile Error {}",e);
             }
-        });
-        return watcher;
+        };
     }
 
     private String resolveClassFqn(Path fullPath) {
