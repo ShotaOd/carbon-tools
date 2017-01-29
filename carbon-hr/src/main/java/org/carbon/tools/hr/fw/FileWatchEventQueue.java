@@ -32,12 +32,7 @@ public class FileWatchEventQueue {
         });
     }
 
-    public FileWatchEvent waitTake() {
-        try {
-            return this.queue.take();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public FileWatchEvent waitTake() throws InterruptedException {
+        return this.queue.take();
     }
 }
