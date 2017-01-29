@@ -8,9 +8,10 @@ import java.time.format.DateTimeFormatter;
  */
 public class Fuga {
     private LocalDateTime dateTime = LocalDateTime.now();
+    private Hoge hoge = new Hoge();
 
     @Override
     public String toString() {
-        return "fugafugafuga"+dateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+        return "fugafugafugafugafugafugafuga";
     }
 }
