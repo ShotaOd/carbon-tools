@@ -51,6 +51,7 @@ public class FileWatchRunner implements Runnable {
         target.register(watchService, kinds);
     }
 
+    @SuppressWarnings("unchecked")
     protected void doRun() {
         while (true) {
             WatchKey watchKey;

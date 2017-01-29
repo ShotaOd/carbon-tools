@@ -12,6 +12,9 @@ public class Fuga {
 
     @Override
     public String toString() {
-        return "fugafugafugafugafugafugafuga";
+        return "Fuga{" +
+                "dateTime=" + dateTime +
+                ", hoge=" + hoge +
+                '}';
     }
 }

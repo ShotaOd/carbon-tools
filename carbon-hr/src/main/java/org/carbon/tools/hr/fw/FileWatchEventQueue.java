@@ -1,36 +1,40 @@
 package org.carbon.tools.hr.fw;
 
 import java.util.Collection;
-import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * @author ubuntu 2017/01/28.
  */
 public class FileWatchEventQueue {
-    private BlockingDeque<FileWatchEvent> queue;
+    private BlockingQueue<FileWatchEvent> queue;
 
     public FileWatchEventQueue() {
         this.queue = new LinkedBlockingDeque<>();
     }
 
     public void push(FileWatchEvent event) {
-        this.queue.add(event);
+        try {
+            this.queue.put(event);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void pushAll(Collection<FileWatchEvent> events) {
         events.forEach(event -> {
             try {
-                queue.putLast(event);
+                queue.put(event);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public FileWatchEvent take() {
+    public FileWatchEvent waitTake() {
         try {
-            return this.queue.takeFirst();
+            return this.queue.take();
         } catch (InterruptedException e) {
             e.printStackTrace();
             return null;

@@ -18,7 +18,7 @@ public class FileWatchEventConsumer implements Runnable {
     @Override
     public void run() {
         while(true) {
-            FileWatchEvent event = queue.take();
+            FileWatchEvent event = queue.waitTake();
             if (event != null) {
                 onChange.accept(event.getAbsFilePath());
             }
