@@ -15,6 +15,7 @@ public class TestRunner {
         hotReloader.setOnClassCompiled(loadCLass -> {
             try {
                 Object o = loadCLass.newInstance();
+                logger.info("class name: [{}]", loadCLass.getName());
                 logger.info("{}", o);
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();

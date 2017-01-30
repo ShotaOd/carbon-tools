@@ -38,7 +38,7 @@ public class HotReloader {
 
     public void subscribe() throws IOException, InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(runners.size());
-        runners.forEach(executorService::submit);
+        runners.forEach(executorService::execute);
     }
 
     public void setOnClassCompiled(Consumer<Class> onClassCompiled) {
@@ -55,12 +55,7 @@ public class HotReloader {
             InMemoryClassLoader classLoader = new InMemoryClassLoader(compiledCode);
             try {
                 Class<?> loadClass = classLoader.loadClass(compiledCode.getClassName());
-                logger.debug("class loaded\nClassLoader: {}\nClass: {}",loadClass.getClassLoader(), loadClass);
-                try {
-                    Object o = loadClass.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+                logger.debug("class loaded\nClassLoader: {}\nClass: {}", loadClass.getClassLoader(), loadClass.getName());
                 if (this.onClassCompiled != null) onClassCompiled.accept(loadClass);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
@@ -73,9 +68,12 @@ public class HotReloader {
             logger.debug("Detect change, at [{}]", path);
 
             String pathStr = path.toString();
-            if (path.toFile().isDirectory()) return;
+            if (path.toFile().isDirectory()) {
+                logger.debug("Dismiss because not file [{}]", path);
+                return;
+            }
             if (!path.toString().endsWith(".java")) {
-                logger.debug("Dismiss because not java file ["+path.getFileName()+"]");
+                logger.debug("Dismiss because not java file [{}]", path.getFileName());
                 return;
             }
 
@@ -92,7 +90,8 @@ public class HotReloader {
                 logger.debug("source: \n{}",source);
 
                 runtimeCompiler.compile(classFqnPath, source);
-            } catch (IOException ignore) {
+            } catch (IOException ioe) {
+                logger.warn("IOException occurred",  ioe);
             } catch (Exception e) {
                 logger.warn("Compile Error {}",e);
             }

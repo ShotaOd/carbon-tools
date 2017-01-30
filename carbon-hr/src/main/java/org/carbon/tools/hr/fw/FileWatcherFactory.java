@@ -33,9 +33,7 @@ public class FileWatcherFactory {
     public Set<Runnable> factorize(Path basePath, Consumer<Path> fileChangedConsumer) throws IOException {
         Map<Path, IOException> ioErrors = new HashMap<>();
 
-        WatchService watchService = FileSystems.getDefault().newWatchService();
-
-        Set<FileWatchRunner> fileWatchRunners = factorize(basePath, watchService, ioErrors).collect(Collectors.toSet());
+        Set<FileWatchRunner> fileWatchRunners = factorize(basePath, ioErrors).collect(Collectors.toSet());
 
         if (!ioErrors.isEmpty()) {
             String failAccessList = ioErrors.entrySet().stream()
@@ -54,7 +52,7 @@ public class FileWatcherFactory {
     }
 
     @SuppressWarnings({"ThrowableResultOfMethodCallIgnored", "ConstantConditions"})
-    private Stream<FileWatchRunner> factorize(Path basePath, WatchService watchService, Map<Path, IOException> ioErrors) throws IOException {
+    private Stream<FileWatchRunner> factorize(Path basePath, Map<Path, IOException> ioErrors) throws IOException {
         return Files.walk(basePath, Integer.MAX_VALUE)
             .flatMap(path -> {
                 if (Files.isRegularFile(path)) {
@@ -63,9 +61,10 @@ public class FileWatcherFactory {
                 try {
                     File dir = path.toFile();
                     if (dir.list().length > 0) {
+                        WatchService watchService = FileSystems.getDefault().newWatchService();
                         return Stream.of(new FileWatchRunner(path, this.queue, watchService));
                     }
-                    return factorize(path, watchService, ioErrors);
+                    return factorize(path, ioErrors);
                 } catch (IOException e) {
                     ioErrors.put(path, e);
                     return Stream.empty();

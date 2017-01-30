@@ -10,7 +10,6 @@ public class Piyo {
     private Hoge hoge = new Hoge();
     private Fuga fuga = new Fuga();
 
-
     @Override
     public String toString() {
         return "Piyo{" +

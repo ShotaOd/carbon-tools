@@ -8,6 +8,8 @@ public class Hoge {
 
     @Override
     public String toString() {
-        return "hoeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+        return "Hoge{" +
+                "hoge='" + hoge + '\'' +
+                '}';
     }
 }

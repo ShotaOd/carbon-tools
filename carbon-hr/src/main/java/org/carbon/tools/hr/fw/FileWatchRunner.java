@@ -7,8 +7,6 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +61,16 @@ public class FileWatchRunner implements Runnable {
                 break;
             }
 
-            List<FileWatchEvent> watchEvents = watchKey.pollEvents().stream().map(event -> {
-                WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
-                Path fileName = pathEvent.context();
-                Path absFilePath = target.resolve(fileName);
-                return new FileWatchEvent(absFilePath);
-            }).collect(Collectors.toList());
-            queue.pushAll(watchEvents);
+            watchKey.pollEvents().stream()
+                .map(event -> {
+                    WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
+                    Path fileName = pathEvent.context();
+                    Path absFilePath = target.resolve(fileName);
+                    return new FileWatchEvent(absFilePath);
+                })
+                .forEach(watchEvent -> {
+                    queue.push(watchEvent);
+                });
 
             boolean reset = watchKey.reset();
             if (!reset) {
@@ -77,5 +78,18 @@ public class FileWatchRunner implements Runnable {
                 break;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (!(object instanceof FileWatchRunner)) return false;
+        FileWatchRunner that = (FileWatchRunner) object;
+        return target.equals(that.target);
+    }
+
+    @Override
+    public int hashCode() {
+        return target.hashCode();
     }
 }
